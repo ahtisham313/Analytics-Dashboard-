@@ -23,7 +23,8 @@ export default function TasksPage() {
     dueDate: '',
   });
   const router = useRouter();
-  const canCreate = hasRole(['admin', 'moderator']);
+  const canCreate = hasRole(['moderator']);
+  const canEditStatus = canCreate;
 
   useEffect(() => {
     fetchTasks();
@@ -208,7 +209,9 @@ export default function TasksPage() {
                   >
                     <option value="open">Open</option>
                     <option value="in-progress">In Progress</option>
-                    {canCreate && <option value="resolved">Resolved</option>}
+                    <option value="resolved" disabled={!canEditStatus}>
+                      Resolved
+                    </option>
                   </select>
                 </td>
                 <td className="whitespace-nowrap px-6 py-4">

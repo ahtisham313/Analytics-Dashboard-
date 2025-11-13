@@ -34,10 +34,8 @@ export default function DashboardPage() {
       setLoading(true);
       let response;
       
-      if (hasRole(['admin'])) {
+      if (hasRole(['admin']) || hasRole(['moderator'])) {
         response = await analyticsAPI.getSystem();
-      } else if (hasRole(['moderator'])) {
-        response = await analyticsAPI.getModerator();
       } else {
         response = await analyticsAPI.getUser();
       }
@@ -68,17 +66,18 @@ export default function DashboardPage() {
 
   const isAdmin = hasRole(['admin']);
   const isModerator = hasRole(['moderator']);
+  const isManagement = isAdmin || isModerator;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-2 text-sm text-gray-600">
-          {isAdmin ? 'System-wide analytics' : isModerator ? 'Project analytics' : 'Your tasks and tickets'}
+          {isManagement ? 'System-wide analytics' : 'Your tasks and tickets'}
         </p>
       </div>
 
-      {isAdmin && analytics?.totals && (
+      {isManagement && analytics?.totals && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="text-sm font-medium text-gray-500">Total Projects</div>
@@ -140,7 +139,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {isAdmin && analytics?.ticketsPerUser && analytics.ticketsPerUser.length > 0 && (
+      {isManagement && analytics?.ticketsPerUser && analytics.ticketsPerUser.length > 0 && (
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Tickets Resolved per User</h2>
           <div className="overflow-x-auto">
@@ -178,7 +177,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {isAdmin && analytics?.moderatorPerformance && analytics.moderatorPerformance.length > 0 && (
+      {isManagement && analytics?.moderatorPerformance && analytics.moderatorPerformance.length > 0 && (
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Moderator Performance</h2>
           <div className="overflow-x-auto">

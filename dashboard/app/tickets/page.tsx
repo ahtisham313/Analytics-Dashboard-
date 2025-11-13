@@ -24,14 +24,15 @@ export default function TicketsPage() {
     rejectionReason: '',
   });
   const router = useRouter();
-  const canVerify = hasRole(['admin', 'moderator']);
+  const canCreateTickets = hasRole(['user']);
+  const canVerify = hasRole(['moderator']);
 
   useEffect(() => {
     fetchTickets();
-    if (!canVerify) {
-      fetchUserTasks();
+    if (canCreateTickets) {
+      fetchTasksForTicketCreation();
     }
-  }, [canVerify]);
+  }, [canCreateTickets]);
 
   const fetchTickets = async () => {
     try {
@@ -45,15 +46,17 @@ export default function TicketsPage() {
     }
   };
 
-  const fetchUserTasks = async () => {
+  const fetchTasksForTicketCreation = async () => {
     try {
       const response = await tasksAPI.getAll();
       const user = getAuth();
-      const userTasks = response.data.filter((task: Task) => 
-        task.status !== 'resolved' && 
-        (task.assignedTo && typeof task.assignedTo === 'object' && task.assignedTo._id === user?._id)
+      const availableTasks = response.data.filter((task: Task) =>
+        task.status !== 'resolved' &&
+        task.assignedTo &&
+        typeof task.assignedTo === 'object' &&
+        task.assignedTo._id === user?._id
       );
-      setTasks(userTasks);
+      setTasks(availableTasks);
     } catch (err: any) {
       console.error('Failed to load tasks:', err);
     }
@@ -69,8 +72,8 @@ export default function TicketsPage() {
         resolutionNotes: '',
       });
       fetchTickets();
-      if (!canVerify) {
-        fetchUserTasks();
+      if (canCreateTickets) {
+        fetchTasksForTicketCreation();
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create ticket');
@@ -121,10 +124,14 @@ export default function TicketsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tickets</h1>
           <p className="mt-2 text-sm text-gray-600">
-            {canVerify ? 'Verify ticket resolutions' : 'Resolve tasks with tickets'}
+            {canVerify
+              ? 'Review and verify ticket resolutions'
+              : canCreateTickets
+                ? 'Resolve your assigned tasks by submitting tickets'
+                : 'View ticket history'}
           </p>
         </div>
-        {!canVerify && (
+        {canCreateTickets && (
           <button
             onClick={() => setShowCreateModal(true)}
             className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
@@ -223,7 +230,7 @@ export default function TicketsPage() {
         </div>
       )}
 
-      {showCreateModal && (
+      {showCreateModal && canCreateTickets && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Create Ticket (Resolve Task)</h2>

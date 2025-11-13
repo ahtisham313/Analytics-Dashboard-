@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { usersAPI } from '@/lib/api';
+import { usersAPI, authAPI } from '@/lib/api';
 import { getAuth, hasRole } from '@/lib/auth';
 import { User } from '@/types';
 
@@ -11,12 +11,19 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: 'user' as 'admin' | 'moderator' | 'user',
     isActive: true,
+  });
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user' as 'admin' | 'moderator' | 'user',
   });
   useEffect(() => {
     if (hasRole(['admin'])) {
@@ -65,6 +72,23 @@ export default function UsersPage() {
     try {
       await usersAPI.delete(id);
       fetchUsers();
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await authAPI.register(createFormData);
+      setShowCreateModal(false);
+      setCreateFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+      });
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create user');
+    }
+  };
+
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete user');
     }
@@ -98,6 +122,22 @@ export default function UsersPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await authAPI.register(createFormData);
+      setShowCreateModal(false);
+      setCreateFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+      });
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create user');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -106,6 +146,15 @@ export default function UsersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Users</h1>
           <p className="mt-2 text-sm text-gray-600">Manage system users</p>
         </div>
+        <button
+          onClick={() => {
+            setError('');
+            setShowCreateModal(true);
+          }}
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Add User
+        </button>
       </div>
 
       {error && (
@@ -244,6 +293,84 @@ export default function UsersPage() {
                   onClick={() => {
                     setShowModal(false);
                     setSelectedUser(null);
+                  }}
+                  className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Add User</h2>
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={createFormData.name}
+                  onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={createFormData.email}
+                  onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={createFormData.password}
+                  onChange={(e) => setCreateFormData({ ...createFormData, password: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <select
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={createFormData.role}
+                  onChange={(e) =>
+                    setCreateFormData({ ...createFormData, role: e.target.value as 'admin' | 'moderator' | 'user' })
+                  }
+                >
+                  <option value="user">User</option>
+                  <option value="moderator">Moderator</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setCreateFormData({
+                      name: '',
+                      email: '',
+                      password: '',
+                      role: 'user',
+                    });
                   }}
                   className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
                 >

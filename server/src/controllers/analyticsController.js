@@ -95,6 +95,11 @@ export const getSystemAnalytics = async (req, res) => {
         $unwind: '$moderator',
       },
       {
+        $match: {
+          'moderator.role': 'moderator',
+        },
+      },
+      {
         $lookup: {
           from: 'tasks',
           localField: '_id',

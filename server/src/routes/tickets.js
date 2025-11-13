@@ -13,8 +13,8 @@ const router = express.Router();
 router.get('/', protect, getTickets);
 router.get('/:id', protect, getTicket);
 router.post('/', protect, createTicket);
-router.put('/:id/verify', protect, authorize('admin', 'moderator'), verifyTicket);
-router.delete('/:id', protect, authorize('admin', 'moderator'), deleteTicket);
+router.put('/:id/verify', protect, authorize('moderator'), verifyTicket);
+router.delete('/:id', protect, authorize('moderator'), deleteTicket);
 
 export default router;
 

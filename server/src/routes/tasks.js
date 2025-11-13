@@ -12,9 +12,9 @@ const router = express.Router();
 
 router.get('/', protect, getTasks);
 router.get('/:id', protect, getTask);
-router.post('/', protect, authorize('admin', 'moderator'), createTask);
+router.post('/', protect, authorize('moderator'), createTask);
 router.put('/:id', protect, updateTask);
-router.delete('/:id', protect, authorize('admin', 'moderator'), deleteTask);
+router.delete('/:id', protect, authorize('moderator'), deleteTask);
 
 export default router;
 

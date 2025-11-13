@@ -38,37 +38,37 @@ npm run dev
 - DELETE `/api/users/:id` - Delete user
 - GET `/api/users/role/:role` - Get users by role
 
-### Projects (Admin, Moderator)
+### Projects
 - GET `/api/projects` - Get all projects
 - GET `/api/projects/:id` - Get project by ID
-- POST `/api/projects` - Create project
-- PUT `/api/projects/:id` - Update project
-- DELETE `/api/projects/:id` - Delete project
+- POST `/api/projects` - Create project *(Moderator)*
+- PUT `/api/projects/:id` - Update project *(Moderator)*
+- DELETE `/api/projects/:id` - Delete project *(Moderator)*
 - GET `/api/projects/:id/tasks` - Get project tasks
 
 ### Tasks
 - GET `/api/tasks` - Get all tasks
 - GET `/api/tasks/:id` - Get task by ID
-- POST `/api/tasks` - Create task (Admin, Moderator)
+- POST `/api/tasks` - Create task *(Moderator)*
 - PUT `/api/tasks/:id` - Update task
-- DELETE `/api/tasks/:id` - Delete task (Admin, Moderator)
+- DELETE `/api/tasks/:id` - Delete task *(Moderator)*
 
 ### Tickets
 - GET `/api/tickets` - Get all tickets
 - GET `/api/tickets/:id` - Get ticket by ID
-- POST `/api/tickets` - Create ticket (resolve task)
-- PUT `/api/tickets/:id/verify` - Verify ticket (Admin, Moderator)
-- DELETE `/api/tickets/:id` - Delete ticket (Admin, Moderator)
+- POST `/api/tickets` - Create ticket (resolve task) *(User)*
+- PUT `/api/tickets/:id/verify` - Verify ticket *(Moderator)*
+- DELETE `/api/tickets/:id` - Delete ticket *(Moderator)*
 
 ### Analytics
-- GET `/api/analytics/system` - System-wide analytics (Admin)
+- GET `/api/analytics/system` - System-wide analytics *(Admin)*
 - GET `/api/analytics/project/:id` - Project analytics
-- GET `/api/analytics/moderator` - Moderator analytics
+- GET `/api/analytics/moderator` - Moderator analytics *(Moderator)*
 - GET `/api/analytics/user` - User analytics
 
 ## Roles
 
-- **Admin**: Full system access
-- **Moderator (Project Manager)**: Manage projects, assign tasks, verify tickets
-- **User**: View assigned tasks, update status, resolve tickets
+- **Admin**: Manage users, oversee projects and tasks, and view system-wide analytics.
+- **Moderator (Project Manager)**: Create and manage projects, assign tasks, track team progress, and verify ticket resolutions.
+- **User**: View assigned tasks, move work forward, and resolve tasks by submitting tickets for moderator review.
 

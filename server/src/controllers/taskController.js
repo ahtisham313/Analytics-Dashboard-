@@ -8,19 +8,9 @@ export const getTasks = async (req, res) => {
   try {
     let query = {};
 
-    // Admin can see all tasks
-    // Moderator can see tasks in their projects
+    // Admin and moderator can see all tasks
     // User can see ONLY tasks assigned to them
-    if (req.user.role === 'moderator') {
-      const projects = await Project.find({
-        $or: [
-          { moderator: req.user._id },
-          { members: req.user._id }
-        ]
-      }).select('_id');
-      const projectIds = projects.map(p => p._id);
-      query = { project: { $in: projectIds } };
-    } else if (req.user.role === 'user') {
+    if (req.user.role === 'user') {
       query = { assignedTo: req.user._id };
     }
 
@@ -55,6 +45,7 @@ export const getTask = async (req, res) => {
     const project = task.project;
     if (
       req.user.role !== 'admin' &&
+      req.user.role !== 'moderator' &&
       project.moderator.toString() !== req.user._id.toString() &&
       !project.members.some(m => m.toString() === req.user._id.toString()) &&
       task.assignedTo?._id.toString() !== req.user._id.toString()
@@ -87,7 +78,7 @@ export const createTask = async (req, res) => {
     }
 
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== 'moderator' ||
       projectDoc.moderator.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: 'Access denied' });
@@ -129,7 +120,7 @@ export const updateTask = async (req, res) => {
 
     // Check access - Moderator/Admin can update any field, User can only update status
     const project = task.project;
-    const isModerator = req.user.role === 'admin' || project.moderator.toString() === req.user._id.toString();
+    const isModerator = req.user.role === 'moderator' && project.moderator.toString() === req.user._id.toString();
     const isAssignedUser = task.assignedTo?.toString() === req.user._id.toString();
 
     if (!isModerator && !isAssignedUser) {
@@ -190,7 +181,7 @@ export const deleteTask = async (req, res) => {
     // Check if user is moderator or admin
     const project = task.project;
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== 'moderator' ||
       project.moderator.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: 'Access denied' });

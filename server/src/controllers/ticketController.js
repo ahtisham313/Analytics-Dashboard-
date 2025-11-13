@@ -9,21 +9,9 @@ export const getTickets = async (req, res) => {
   try {
     let query = {};
 
-    // Admin can see all tickets
-    // Moderator can see tickets for their projects
-    // User can see tickets they resolved
-    if (req.user.role === 'moderator') {
-      const projects = await Project.find({
-        $or: [
-          { moderator: req.user._id },
-          { members: req.user._id }
-        ]
-      }).select('_id');
-      const projectIds = projects.map(p => p._id);
-      const tasks = await Task.find({ project: { $in: projectIds } }).select('_id');
-      const taskIds = tasks.map(t => t._id);
-      query = { task: { $in: taskIds } };
-    } else if (req.user.role === 'user') {
+    // Admin and moderator can see all tickets
+    // User can see their own tickets
+    if (req.user.role === 'user') {
       query = { resolvedBy: req.user._id };
     }
 
@@ -88,6 +76,10 @@ export const getTicket = async (req, res) => {
 // @access  Private/User
 export const createTicket = async (req, res) => {
   try {
+    if (req.user.role !== 'user') {
+      return res.status(403).json({ message: 'Only assigned users can create tickets' });
+    }
+
     const { task, resolutionNotes } = req.body;
 
     if (!task || !resolutionNotes) {
@@ -98,12 +90,6 @@ export const createTicket = async (req, res) => {
     const taskDoc = await Task.findById(task).populate('project', 'members');
     if (!taskDoc) {
       return res.status(404).json({ message: 'Task not found' });
-    }
-
-    // Only the assigned user can create a resolution ticket
-    const isAssigned = taskDoc.assignedTo?.toString() === req.user._id.toString();
-    if (!isAssigned && req.user.role !== 'admin' && req.user.role !== 'moderator') {
-      return res.status(403).json({ message: 'Only the assigned user can resolve this task' });
     }
 
     // Check if ticket already exists for this task
@@ -168,7 +154,7 @@ export const verifyTicket = async (req, res) => {
     // Check if user is moderator or admin
     const project = ticket.task.project;
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== 'moderator' ||
       project.moderator.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: 'Access denied' });
@@ -227,7 +213,7 @@ export const deleteTicket = async (req, res) => {
     // Check if user is moderator or admin
     const project = ticket.task.project;
     if (
-      req.user.role !== 'admin' &&
+      req.user.role !== 'moderator' ||
       project.moderator.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: 'Access denied' });

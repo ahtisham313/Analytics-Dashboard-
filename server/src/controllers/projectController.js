@@ -8,17 +8,9 @@ export const getProjects = async (req, res) => {
   try {
     let query = {};
 
-    // Admin can see all projects
-    // Moderator can see their projects and projects they're assigned to
+    // Admin and moderator can see all projects
     // User can only see projects where they have tasks assigned
-    if (req.user.role === 'moderator') {
-      query = {
-        $or: [
-          { moderator: req.user._id },
-          { members: req.user._id }
-        ]
-      };
-    } else if (req.user.role === 'user') {
+    if (req.user.role === 'user') {
       const userTasks = await Task.find({ assignedTo: req.user._id }).select('project');
       const projectIds = [...new Set(userTasks.map(t => t.project?.toString()))].filter(Boolean);
       query = { _id: { $in: projectIds } };
@@ -50,13 +42,7 @@ export const getProject = async (req, res) => {
     }
 
     // Check access
-    if (req.user.role === 'admin') {
-      return res.json(project);
-    }
-    if (req.user.role === 'moderator') {
-      if (project.moderator._id.toString() !== req.user._id.toString() && !project.members.some(m => m._id.toString() === req.user._id.toString())) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
+    if (req.user.role === 'admin' || req.user.role === 'moderator') {
       return res.json(project);
     }
     // user: visible only if they have an assigned task in this project
@@ -116,10 +102,7 @@ export const updateProject = async (req, res) => {
     }
 
     // Check if user is moderator or admin
-    if (
-      req.user.role !== 'admin' &&
-      project.moderator.toString() !== req.user._id.toString()
-    ) {
+    if (project.moderator.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -188,8 +171,12 @@ export const getProjectTasks = async (req, res) => {
     }
 
     // Check access
+    const isAdmin = req.user.role === 'admin';
+    const isModerator = req.user.role === 'moderator';
+
     if (
-      req.user.role !== 'admin' &&
+      !isAdmin &&
+      !isModerator &&
       project.moderator.toString() !== req.user._id.toString() &&
       !project.members.some(m => m.toString() === req.user._id.toString())
     ) {

@@ -20,7 +20,7 @@ export default function ProjectsPage() {
     endDate: '',
   });
   const router = useRouter();
-  const canCreate = hasRole(['admin', 'moderator']);
+  const canCreate = hasRole(['moderator']);
 
   useEffect(() => {
     fetchProjects();
@@ -40,6 +40,7 @@ export default function ProjectsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       await projectsAPI.create(formData);
       setShowModal(false);
@@ -116,11 +117,26 @@ export default function ProjectsPage() {
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    <span className="font-medium">Moderator:</span> {typeof project.moderator === 'object' ? project.moderator.name : 'N/A'}
+                    <span className="font-medium">Moderator:</span>{' '}
+                    {typeof project.moderator === 'object'
+                      ? project.moderator.name
+                      : 'Unassigned'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    <span className="font-medium">Members:</span> {Array.isArray(project.members) ? project.members.length : 0}
+                    <span className="font-medium">Users:</span>{' '}
+                    {Array.isArray(project.members) ? project.members.length : 0}
                   </div>
+                  {Array.isArray(project.members) && project.members.length > 0 && (
+                    <div className="text-sm text-gray-500">
+                      <span className="font-medium">Team:</span>{' '}
+                      {project.members
+                        .map((member) =>
+                          typeof member === 'object' ? member.name : ''
+                        )
+                        .filter(Boolean)
+                        .join(', ')}
+                    </div>
+                  )}
                   {project.startDate && (
                     <div className="text-sm text-gray-500">
                       <span className="font-medium">Start:</span> {format(new Date(project.startDate), 'MMM dd, yyyy')}
@@ -132,7 +148,7 @@ export default function ProjectsPage() {
             <div className="mt-4 flex space-x-2">
               <button
                 onClick={() => router.push(`/projects/${project._id}`)}
-                className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                  className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
               >
                 View
               </button>

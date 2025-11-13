@@ -14,9 +14,9 @@ const router = express.Router();
 router.get('/', protect, getProjects);
 router.get('/:id', protect, getProject);
 router.get('/:id/tasks', protect, getProjectTasks);
-router.post('/', protect, authorize('admin', 'moderator'), createProject);
-router.put('/:id', protect, authorize('admin', 'moderator'), updateProject);
-router.delete('/:id', protect, authorize('admin', 'moderator'), deleteProject);
+router.post('/', protect, authorize('moderator'), createProject);
+router.put('/:id', protect, authorize('moderator'), updateProject);
+router.delete('/:id', protect, authorize('moderator'), deleteProject);
 
 export default router;
 
