@@ -77,11 +77,16 @@ export const createTask = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    if (
-      req.user.role !== 'moderator' ||
-      projectDoc.moderator.toString() !== req.user._id.toString()
-    ) {
-      return res.status(403).json({ message: 'Access denied' });
+    // Moderators can create tasks in projects where they are the moderator or a member
+    if (req.user.role === 'moderator') {
+      const moderatorId = projectDoc.moderator.toString();
+      const isProjectModerator = moderatorId === req.user._id.toString();
+      const isProjectMember = projectDoc.members.some(m => m.toString() === req.user._id.toString());
+      if (!isProjectModerator && !isProjectMember) {
+        return res.status(403).json({ message: 'Access denied. You must be the moderator or a member of this project.' });
+      }
+    } else {
+      return res.status(403).json({ message: 'Access denied. Only moderators can create tasks.' });
     }
 
     const task = await Task.create({

@@ -18,6 +18,7 @@ export const protect = async (req, res, next) => {
 
       // Get user from the token
       req.user = await User.findById(decoded.id).select('-password');
+      console.log('Authenticated user:', req.user);
 
       if (!req.user || !req.user.isActive) {
         return res.status(401).json({ message: 'User not authorized' });
